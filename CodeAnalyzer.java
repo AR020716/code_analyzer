@@ -13,17 +13,17 @@ public class CodeAnalyzer {
                    tempList.add(file); 
                 }
             }
-        }
-        else {
-            System.out.println("No file in folder");
-        }
-        File[] temp = tempList.toArray(new File[0]);
-        if (temp != null) {
+            File[] temp = tempList.toArray(new File[0]);
+        if (!tempList.isEmpty()) {
             for (File file : temp) {
                 System.out.println("Found Java file: " + file.getName());
             }
         } else {
             System.out.println("No .java files found.");
+        }
+        }
+        else {
+            System.out.println("No folder found");
         }
     }
 }
