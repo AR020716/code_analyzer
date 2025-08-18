@@ -1,10 +1,12 @@
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CodeAnalyzer {
-    public static void main(String[] args) {
-        File folder = new File("code_analyzer/code analyzer test");
+    public static void main(String[] args) throws IOException {
+        File folder = new File("code analyzer test");
         List<File> tempList = new ArrayList<>();
         File[] files = folder.listFiles();
         if (files != null) {
@@ -13,17 +15,22 @@ public class CodeAnalyzer {
                    tempList.add(file); 
                 }
             }
-        }
-        else {
-            System.out.println("No file in folder");
-        }
-        File[] temp = tempList.toArray(new File[0]);
-        if (temp != null) {
+            File[] temp = tempList.toArray(new File[0]);
+        if (!tempList.isEmpty()) {
             for (File file : temp) {
                 System.out.println("Found Java file: " + file.getName());
+            List<String> code = Files.readAllLines(file.toPath());
+            for(String line : code){
+                System.out.println(line);
+            }
+            System.out.println();
             }
         } else {
             System.out.println("No .java files found.");
+        }
+        }
+        else {
+            System.out.println("No folder found");
         }
     }
 }
