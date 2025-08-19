@@ -59,6 +59,31 @@ public class CodeAnalyzer {
         }
     }
 
+    public static void SemicolonChecker(List<String> code){
+        
+        String skipPattern = "[{}]|(if|else|for|while|switch|try|catch).*|[a-zA-Z0-9_\\s]*:|.*\\{";             
+        
+        boolean missedSemicolonFlag = false;
+
+        for (int i = 0; i < code.size(); i++) {
+            String line = code.get(i).trim();
+
+            if (line.isEmpty() || line.matches(skipPattern)) {
+                continue;
+            }
+
+            if (!line.endsWith(";")) {
+                missedSemicolonFlag = true;
+                System.out.println("Missing semicolon at line: "+(i+1));
+            }
+        }
+
+        if (!missedSemicolonFlag) {
+            System.out.println("No missing semicolon detected.");
+        }
+    }
+     
+
     public static void main(String[] args) throws IOException {
         File folder = new File("code analyzer test");
         List<File> tempList = new ArrayList<>();
@@ -81,6 +106,7 @@ public class CodeAnalyzer {
                     }
                     ClassNameChecker(filteredCode);
                     VariableNameChecker(filteredCode);
+                    SemicolonChecker(filteredCode);
                     System.out.println();
                 }
             } else {
