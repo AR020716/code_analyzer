@@ -65,8 +65,13 @@ public class CodeAnalyzer {
             for (File file : temp) {
                 System.out.println("Found Java file: " + file.getName());
             List<String> code = Files.readAllLines(file.toPath());
-            ClassnameChecker(code);
-            VariableNameChecker(code);
+            List<String> filterCode = new ArrayList<>();
+            for(String line : code){
+                String filter = line.replaceAll("\".*\"", "\"\"");
+                filterCode.add(filter);
+            }
+            ClassnameChecker(filterCode);
+            VariableNameChecker(filterCode);
             System.out.println();
             }
         } else {
