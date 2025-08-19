@@ -1,4 +1,4 @@
 public class invalidClass {
-    System.out.println ("Invalid classname");
+    System.out.println ("\"Invalid\" class name");
     int BhulVariable = 0;
 }
