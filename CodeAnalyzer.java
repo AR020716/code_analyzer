@@ -27,8 +27,30 @@ public class CodeAnalyzer {
             System.out.println("No class declaration found in this file ");
          }
     }
+        public static void VariableNameChecker(List<String> code) {
+                Set<String> types = new HashSet<>(Arrays.asList(
+                    "int", "double", "float", "char", "byte", "short", "long", "boolean", "String", "HashSet<[A-Z][a-z]*>" , "HashMap<[A-Z][a-z]*,[A-Z][a-z]*>" 
+                ));
+                String typePattern = "\\b(" + String.join("|", types) + ")\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)";
+                Pattern varPattern = Pattern.compile(typePattern);
+                Pattern camelCasePattern = Pattern.compile("[a-z]+([A-Z][a-z0-9]*)*");
 
-    public static void main(String[] args) throws IOException {
+                boolean isVariable = false;
+
+                for (String line : code) {
+                Matcher matcher = varPattern.matcher(line);
+                while (matcher.find()) {
+                    isVariable = true;
+                    String variableName = matcher.group(2);
+                    if (camelCasePattern.matcher(variableName).matches()) {
+                        System.out.println(variableName + " is a valid camelCase variable name");
+                    } else {
+                        System.out.println(variableName + " is an invalid camelCase variable name");
+                    }
+                } 
+            }
+        }
+         public static void main(String[] args) throws IOException {
         File folder = new File("code analyzer test");
         List<File> tempList = new ArrayList<>();
         File[] files = folder.listFiles();
@@ -44,6 +66,7 @@ public class CodeAnalyzer {
                 System.out.println("Found Java file: " + file.getName());
             List<String> code = Files.readAllLines(file.toPath());
             ClassnameChecker(code);
+            VariableNameChecker(code);
             System.out.println();
             }
         } else {
