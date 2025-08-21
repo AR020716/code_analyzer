@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.*;
+import java.lang.reflect.*;;
 
 public class CodeAnalyzer {
 
@@ -57,7 +58,7 @@ public class CodeAnalyzer {
                 }
             }
         }
-
+        
         if (!isClassFound) {
             System.out.println("No class declaration found in this file.");
         }
@@ -66,6 +67,23 @@ public class CodeAnalyzer {
         }
         if (!semicolonMissing) {
             System.out.println("No missing semicolon detected.");
+        }
+    }
+    
+    public static void analyzeClass (File classFile) {
+        Pattern pascalCasePattern = Pattern.compile("[A-Z][a-zA-Z0-9]*");
+        String className = classFile.getName().replace(".class", "");
+        try{
+            Class<?> cls = Class.forName(className);  
+            String simpleName = cls.getSimpleName();
+            if (pascalCasePattern.matcher(simpleName).matches()) {
+                System.out.println(simpleName + " is a valid PascalCase class name.");
+            } else {
+                System.out.println(simpleName + " is an invalid PascalCase class name.");
+            }
+        }
+        catch (ClassNotFoundException e) {
+            System.out.println("Could not load class: " + className);
         }
     }
 
@@ -78,12 +96,25 @@ public class CodeAnalyzer {
         File[] files = folder.listFiles((folderName, fileName) -> fileName.endsWith(".java"));
         if (files.length == 0) {
             System.out.println("No .java files found.");
-            return;
         }
-        for (File file : files) {
-            System.out.println("Found Java file: " + file.getName());
-            analyzeCode(Files.readAllLines(file.toPath()));
-            System.out.println();
+        else{
+            for (File file : files) {
+                System.out.println("Found Java file: " + file.getName());
+                analyzeCode(Files.readAllLines(file.toPath()));
+                System.out.println();
+            }
+        }
+        File[] classes = folder.listFiles((folderName, fileName) -> fileName.endsWith(".class"));
+        if (classes.length == 0) {
+            System.out.println("No .class files found.");
+        }
+        else{
+            for (File classFile : classes) {
+                System.out.println("Found class file: " + classFile.getName());
+                analyzeClass(classFile);
+                System.out.println();
+            }
         }
     }
 }
+
