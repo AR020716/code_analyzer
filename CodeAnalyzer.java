@@ -3,109 +3,87 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.*;
+
 public class CodeAnalyzer {
-    public static void ClassnameChecker(List<String> code) { 
+
+    public static void analyzeCode(List<String> code) {
         Pattern classPattern = Pattern.compile("\\bclass\\s+([A-Za-z0-9_$]+)");
-        
         Pattern validClassPattern = Pattern.compile("[A-Z][a-zA-Z0-9]*");
-        boolean isClass = false;
-                for (String line : code) {
-                Matcher matcher = classPattern.matcher(line);
-                if (matcher.find()) {
-                isClass = true;
-                String className = matcher.group(1);
-                if (validClassPattern.matcher(className).matches()) {
-                    System.out.println(className + " is a valid class name");
-                    
-                } else {
-                    System.out.println(className + " is an invalid class name");
-                }
-              
+
+        Pattern varPattern = Pattern.compile("\\b(int|double|float|char|byte|short|long|boolean|String|HashSet<[A-Z][a-zA-Z]*>|HashMap<[A-Z][a-zA-Z]*,[A-Z][a-zA-Z]*>)\\s+([a-zA-Z0-9_$][a-zA-Z0-9_$]*)");
+        Pattern camelCasePattern = Pattern.compile("[a-z]+([A-Z][a-z0-9]*)*");
+
+        String skipPattern = ".*\\{|(if|else|for|while|switch|try|catch)\\b.*|.*:";
+
+        boolean isClassFound = false;
+        boolean isVariableFound = false;
+        boolean semicolonMissing = false;
+
+        for (int i = 0; i < code.size(); i++) {
+            String line = code.get(i).trim();
+
+            if (line.isEmpty()||line.matches("[{}\\s*]*")) {
+                continue;
             }
-         }
-         if(!isClass){
-            System.out.println("No class declaration found in this file ");
-         }
-    }
-        public static void VariableNameChecker(List<String> code) {
-                Set<String> types = new HashSet<>(Arrays.asList(
-                    "int", "double", "float", "char", "byte", "short", "long", "boolean", "String", "HashSet<[A-Z][a-z]*>" , "HashMap<[A-Z][a-z]*,[A-Z][a-z]*>" 
-                ));
-                String typePattern = "\\b(" + String.join("|", types) + ")\\s+([a-zA-Z_$][a-zA-Z0-9_$]*)";
-                Pattern varPattern = Pattern.compile(typePattern);
-                Pattern camelCasePattern = Pattern.compile("[a-z]+([A-Z][a-z0-9]*)*");
 
-                boolean isVariable = false;
+            else{
+                line = line.replaceAll("\".*\"", "\"\"");
 
-                for (String line : code) {
-                Matcher matcher = varPattern.matcher(line);
-                while (matcher.find()) {
-                    isVariable = true;
-                    String variableName = matcher.group(2);
+                Matcher classMatcher = classPattern.matcher(line);
+                if (classMatcher.find()) {
+                    isClassFound = true;
+                    String className = classMatcher.group(1);
+                    if (validClassPattern.matcher(className).matches()) {
+                        System.out.println(className + " is a valid class name");
+                    } else {
+                        System.out.println(className + " is an invalid class name");
+                    }
+                }
+
+                Matcher varMatcher = varPattern.matcher(line);
+                while (varMatcher.find()) {
+                    isVariableFound = true;
+                    String variableName = varMatcher.group(2);
                     if (camelCasePattern.matcher(variableName).matches()) {
                         System.out.println(variableName + " is a valid camelCase variable name");
                     } else {
                         System.out.println(variableName + " is an invalid camelCase variable name");
                     }
-                } 
-            }
-        }
-        public static void SemicolonChecker(List<String> code){
-        
-        String skipPattern = "[{}]|(if|else|for|while|switch|try|catch).|[a-zA-Z0-9_\\s]:|.*\\{";             
-        
-        boolean missedSemicolonFlag = false;
+                }
 
-        for (int i = 0; i < code.size(); i++) {
-            String line = code.get(i).trim();
-
-            if (line.isEmpty() || line.matches(skipPattern)) {
-                continue;
-            }
-
-            if (!line.endsWith(";")) {
-                missedSemicolonFlag = true;
-                System.out.println("Missing semicolon at line: "+(i+1));
+                if (!line.matches(skipPattern) && !line.endsWith(";")) {
+                    semicolonMissing = true;
+                    System.out.println("Missing semicolon at line: " + (i + 1));
+                }
             }
         }
 
-        if (!missedSemicolonFlag) {
+        if (!isClassFound) {
+            System.out.println("No class declaration found in this file.");
+        }
+        if (!isVariableFound) {
+            System.out.println("No variable declarations found in this file.");
+        }
+        if (!semicolonMissing) {
             System.out.println("No missing semicolon detected.");
         }
     }
-         public static void main(String[] args) throws IOException {
+
+    public static void main(String[] args) throws IOException {
         File folder = new File("code analyzer test");
-        List<File> tempList = new ArrayList<>();
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.getName().endsWith(".java")) {
-                   tempList.add(file); 
-                }
-            }
-            File[] temp = tempList.toArray(new File[0]);
-        if (!tempList.isEmpty()) {
-            for (File file : temp) {
-                System.out.println("Found Java file: " + file.getName());
-            List<String> code = Files.readAllLines(file.toPath());
-            List<String> filterCode = new ArrayList<>();
-            for(String line : code){
-                String filter = line.replaceAll("\".*\"", "\"\"");
-                filterCode.add(filter);
-            }
-            ClassnameChecker(filterCode);
-            VariableNameChecker(filterCode);
-            SemicolonChecker(filterCode);
-            System.out.println();
-            }
-        } else {
+        if (!folder.exists()|| !folder.isDirectory() ) {
+            System.out.println("No such folder found");
+            return; 
+        }
+        File[] files = folder.listFiles((folderName, fileName) -> fileName.endsWith(".java"));
+        if (files.length == 0) {
             System.out.println("No .java files found.");
+            return;
         }
-        }
-        else {
-            System.out.println("No folder found");
+        for (File file : files) {
+            System.out.println("Found Java file: " + file.getName());
+            analyzeCode(Files.readAllLines(file.toPath()));
+            System.out.println();
         }
     }
-    
 }
-
