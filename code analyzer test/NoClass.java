@@ -1,5 +1,1 @@
-package code analyzer test;
-
-public NoClass {
-    
-}
+blehhhh;

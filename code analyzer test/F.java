@@ -1,5 +1,3 @@
-// package F;
-
 import java.util.*;
 
 public class F {
